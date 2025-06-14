@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Totally Normal Tic‑Tac‑Toe 😉</title>
+<style>
+  /* ——— vibes & layout ——— */
+  body{font-family:Arial,Helvetica,sans-serif;background:#111;color:#eee;text-align:center;}
+  h1{margin:1.2rem 0;}
+  #board{display:grid;grid-template-columns:repeat(3,100px);gap:10px;justify-content:center;margin:auto;}
+  .cell{width:100px;height:100px;background:#222;border:2px solid #444;
+        font-size:56px;line-height:100px;cursor:pointer;user-select:none;
+        transition:background 0.2s ease;}
+  .cell:hover{background:#333;}
+  #reset{margin:1.5rem auto;padding:10px 26px;font-size:18px;border:none;
+         border-radius:6px;background:#ff9800;color:#111;cursor:pointer;}
+</style>
+</head>
+<body>
+  <h1>Totally Normal Tic‑Tac‑Toe</h1>
+  <div id="board">
+    <!-- nine clickable cells -->
+    <div class="cell" data-i="0"></div><div class="cell" data-i="1"></div><div class="cell" data-i="2"></div>
+    <div class="cell" data-i="3"></div><div class="cell" data-i="4"></div><div class="cell" data-i="5"></div>
+    <div class="cell" data-i="6"></div><div class="cell" data-i="7"></div><div class="cell" data-i="8"></div>
+  </div>
+  <button id="reset">Reset</button>
+
+<script>
+/* ——— game state ——— */
+const board   = Array(9).fill(null);
+const cells   = document.querySelectorAll('.cell');
+let current   = 'X';        // you, the prankster
+let turnCount = 0;
+const PRANK_PROB = 0.30;    // 30 % chance each O‑turn gets sabotaged
+
+/* winning triplets */
+const wins = [
+  [0,1,2],[3,4,5],[6,7,8],  // rows
+  [0,3,6],[1,4,7],[2,5,8],  // cols
+  [0,4,8],[2,4,6]           // diagonals
+];
+
+/* ——— helpers ——— */
+const checkWinner = () => {
+  for (const [a,b,c] of wins){
+    if (board[a] && board[a]===board[b] && board[b]===board[c]) return board[a];
+  }
+  return board.every(Boolean) ? 'Tie' : null;
+};
+
+const endGame = (winner) => {
+  if (winner==='Tie'){
+    alert('It’s a draw! Or… is it? 🤔');
+  } else if (winner==='O'){
+    // override their hard‑earned glory
+    alert('Wait—Player O won? That seems… unlikely.');
+    setTimeout(()=>alert('SYSTEM OVERRIDE: Victory reassigned.'),800);
+    setTimeout(()=>alert('👑 Player X is now the true victor. All hail!'),1600);
+  } else {
+    alert('🎉 Player X wins again! Skill? Destiny? Who can say.');
+  }
+  cells.forEach(c=>c.style.pointerEvents='none');
+};
+
+const resetGame = () => {
+  board.fill(null);
+  cells.forEach(c=>{c.textContent='';c.style.pointerEvents='auto';});
+  current='X'; turnCount=0;
+};
+
+/* ——— click handler ——— */
+const handleClick = (e) => {
+  const i = +e.target.dataset.i;
+  if (board[i]) return;               // occupied
+
+  // PRANK ZONE 🤡 👉🏽
+  if (current==='O' && Math.random()<PRANK_PROB){
+    // swap their click: place an X elsewhere
+    const emptyIndices = board.map((v,idx)=>v?null:idx).filter(v=>v!==null);
+    const j = emptyIndices[Math.floor(Math.random()*emptyIndices.length)];
+    board[j]='X';
+    cells[j].textContent='X';
+    alert('😈 Oops… did your move just vanish?');
+    /* fall through: pretend nothing happened, don't mark their intended cell */
+  } else {
+    board[i]=current;
+    e.target.textContent=current;
+  }
+  // ——— end prank zone ———
+
+  const winner = checkWinner();
+  if (winner){ endGame(winner); return; }
+
+  current = current==='X' ? 'O' : 'X';
+  turnCount++;
+};
+
+cells.forEach(c=>c.addEventListener('click', handleClick));
+document.getElementById('reset').addEventListener('click', resetGame);
+</script>
+</body>
+</html>
